@@ -28,6 +28,6 @@ ENV TZ Europe/London
 ENV GOWWW_ROOT /gowww/vhosts
 ENV GOWWW_PORT 8080
 
-EXPOSE 8080/tcp
+EXPOSE ${GOWWW_PORT:-8080}/tcp
 
 CMD ["./gowww"]

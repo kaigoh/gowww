@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: gowww
+    restart: unless-stopped
+    working_dir: /gowww
+    environment:
+      - GOWWW_ROOT=/gowww/vhosts
+      - GOWWW_PORT=8080
+    volumes:
+      - ./vhosts:${GOWWW_ROOT:-/gowww/vhosts}
+    ports:
+      - ${GOWWW_PORT:-8080}:${GOWWW_PORT:-8080}
