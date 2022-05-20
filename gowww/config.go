@@ -9,15 +9,15 @@ import (
 )
 
 type Config struct {
-	Path                string   `yaml:"-"`
-	Host                string   `yaml:"-"`
-	IsWatched           bool     `yaml:"-"`
-	Hosts               []string `yaml:"hosts"`
-	DefaultDocuments    []string `yaml:"default_documents"`
-	AllowDirectoryIndex bool     `yaml:"allow_directory_index"`
+	Path                  string   `yaml:"-"`
+	Host                  string   `yaml:"-"`
+	IsWatched             bool     `yaml:"-"`
+	Hosts                 []string `yaml:"hosts"`
+	DefaultDocuments      []string `yaml:"default_documents"`
+	AllowDirectoryListing bool     `yaml:"allow_directory_listing"`
 }
 
-var DefaultConfig = Config{DefaultDocuments: []string{"index.htm", "index.html", "default.htm"}, AllowDirectoryIndex: false}
+var DefaultConfig = Config{DefaultDocuments: []string{"index.htm", "index.html", "default.htm"}, AllowDirectoryListing: false}
 
 func (c Config) HasHost(host string) bool {
 	host = strings.ToLower(host)

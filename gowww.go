@@ -135,7 +135,7 @@ func AddHost(router *mux.Router, host string, path string, watcher *fsnotify.Wat
 	// Do we have a config for this host? If not, fall back to a default config...
 	config, set := configs[host]
 	if !set {
-		config := defaultConfig
+		config = defaultConfig
 		config.Host = host
 		config.Path = path
 		config.IsWatched = false
@@ -152,29 +152,35 @@ func AddHost(router *mux.Router, host string, path string, watcher *fsnotify.Wat
 	// Do we have a custom config for the host?
 	yml := path + string(os.PathSeparator) + ".gowww.yml"
 	if utilities.FileExists(yml) {
+
 		yfile, err := ioutil.ReadFile(yml)
 		if err != nil {
 			logger.Warn(err)
-		}
-		err = yaml.Unmarshal(yfile, &config)
-		if err != nil {
-			logger.Warn(err)
-		}
-		config.Host = host
-		config.Path = path
-		config.Hosts = append(config.Hosts, host)
-
-		// Watch the config file (if not already being watched)...
-		if !config.IsWatched {
-			if err := watcher.Add(path); err != nil {
-				logger.Error(err)
+		} else {
+			var newConfig gowww.Config
+			err = yaml.Unmarshal(yfile, &newConfig)
+			if err != nil {
+				logger.Warn(err)
 			} else {
-				logger.Info("Watching " + host + " config for changes...")
-				config.IsWatched = true
+				config.DefaultDocuments = newConfig.DefaultDocuments
+				config.AllowDirectoryListing = newConfig.AllowDirectoryListing
+				config.Hosts = newConfig.Hosts
+
+				// Watch the config file (if not already being watched)...
+				if !config.IsWatched {
+					if err := watcher.Add(path); err != nil {
+						logger.Error(err)
+					} else {
+						logger.Info("Watching " + host + " config for changes...")
+						config.IsWatched = true
+					}
+				}
 			}
 		}
-
 	}
+
+	// Ensure the "root" host is included in the alternative hosts...
+	config.Hosts = append(config.Hosts, host)
 
 	// Store the config...
 	configs[host] = config
@@ -187,7 +193,9 @@ func AddHost(router *mux.Router, host string, path string, watcher *fsnotify.Wat
 		}
 		hosts[h] = host
 		if !gowww.HaveRoute(routes, h) {
-			router.Host(h).Handler(http.FileServer(http.Dir(path)))
+			if strings.ToLower(h) != "default" {
+				router.Host(h).Handler(http.FileServer(http.Dir(path)))
+			}
 		}
 	}
 }
@@ -198,8 +206,13 @@ func CanRoute(next http.Handler) http.Handler {
 
 		host := strings.Split(r.Host, ":")
 
+		// Allow unknown hosts to fall back to the "default" host...
+		if !gowww.HaveHost(hosts, host[0]) {
+			host[0] = "default"
+		}
+
 		// Log the request
-		logger.Infof("%s: (%s) %s %s", r.Host, gowww.GetClientIP(r), r.Method, r.URL)
+		logger.Infof("%s: Client %s Method %s URL %s", host[0], gowww.GetClientIP(r), r.Method, r.URL)
 
 		if gowww.HaveHost(hosts, host[0]) {
 			// Get the config...
@@ -215,9 +228,9 @@ func CanRoute(next http.Handler) http.Handler {
 			if r.URL.Path == "" || r.URL.Path == "/" || strings.HasSuffix(r.URL.Path, "/") {
 				index, err := config.GetDefaultDocument(strings.ReplaceAll(r.URL.Path, "/", string(os.PathSeparator)))
 				if err != nil {
-					if !config.AllowDirectoryIndex {
-						http.Error(w, "Directory index not allowed", http.StatusForbidden)
-						logger.Warn("Directory index not allowed")
+					if !config.AllowDirectoryListing {
+						http.Error(w, "Directory listing not allowed", http.StatusForbidden)
+						logger.Warn("Directory listing not allowed")
 						return
 					} else {
 						logger.Warn(err.Error())
