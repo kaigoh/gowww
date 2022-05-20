@@ -24,6 +24,7 @@ hosts:
   - static.foo.bar
 default_documents:
   - home.html
+allow_directory_listing: false
 ```
 
 Here you can add additional hostnames that will serve your content, or override the default document names.
