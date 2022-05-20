@@ -1,6 +1,10 @@
 # GoWWW
 ## _Simple, configurable, multi host static web server in Go_
 
+[![Go](https://github.com/kaigoh/gowww/actions/workflows/go.yml/badge.svg)](https://github.com/kaigoh/gowww/actions/workflows/go.yml)
+[![Docker Image CI](https://github.com/kaigoh/gowww/actions/workflows/docker-image.yml/badge.svg)](https://github.com/kaigoh/gowww/actions/workflows/docker-image.yml)
+[![Docker](https://github.com/kaigoh/gowww/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/kaigoh/gowww/actions/workflows/docker-publish.yml)
+
 GoWWW is a multi-host (i.e. serves multiple domain / subdomain names) static web server this is simple to configure.
 
 ## Basics
